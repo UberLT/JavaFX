@@ -1,9 +1,11 @@
 package gui;
 
 import java.net.URL;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -70,7 +72,7 @@ public class SellerFormController implements Initializable {
 	private Label labelErrorEmail;
 
 	@FXML
-	private Label labelErrorBairthDate;
+	private Label labelErrorBirthDate;
 
 	@FXML
 	private Label labelErrorBaseSalari;
@@ -134,6 +136,25 @@ public class SellerFormController implements Initializable {
 		}
 		obj.setName(txtName.getText());
 
+		if (txtEmail.getText() == null || txtEmail.getText().trim().equals("")) {
+			exception.addError("email", "Field can't beempty");
+		}
+		obj.setEmail(txtEmail.getText());
+
+		if (dpBirthDate.getValue() == null) {
+			exception.addError("birthDate", "Field can't beempty");
+		} else {
+			Instant instant = Instant.from(dpBirthDate.getValue().atStartOfDay(ZoneId.systemDefault()));
+			obj.setBirthDate(Date.from(instant));
+		}
+
+		if (txtBaseSalari.getText() == null || txtBaseSalari.getText().trim().equals("")) {
+			exception.addError("BaseSalary", "Field can't beempty");
+		}
+		obj.setBaseSalary(Utils.tryParseToDouble(txtBaseSalari.getText()));
+		
+		obj.setDepartment(comboBoxDepartment.getValue());
+
 		if (exception.getErrors().size() > 0) {
 			throw exception;
 		}
@@ -173,11 +194,10 @@ public class SellerFormController implements Initializable {
 		if (entity.getBirthDate() != null) {
 			dpBirthDate.setValue(LocalDate.ofInstant(entity.getBirthDate().toInstant(), ZoneId.systemDefault()));
 		}
-		if(entity.getDepartment() == null) {
+		if (entity.getDepartment() == null) {
 			comboBoxDepartment.getSelectionModel().selectFirst();
-		}
-		else {
-		comboBoxDepartment.setValue(entity.getDepartment());
+		} else {
+			comboBoxDepartment.setValue(entity.getDepartment());
 		}
 	}
 
@@ -193,9 +213,13 @@ public class SellerFormController implements Initializable {
 	private void setErrorMessages(Map<String, String> errors) {
 		Set<String> fields = errors.keySet();
 
-		if (fields.contains("name")) {
-			labelErrorName.setText(errors.get("name"));
-		}
+		labelErrorName.setText((fields.contains("name") ? errors.get("name") : ""));
+
+		labelErrorEmail.setText((fields.contains("email") ? errors.get("email") : ""));
+
+		labelErrorBaseSalari.setText((fields.contains("baseSalari") ? errors.get("baseSalari") : ""));
+
+		labelErrorBirthDate.setText((fields.contains("birthDate") ? errors.get("birthDate") : ""));
 	}
 
 	private void initializeComboBoxDepartment() {
